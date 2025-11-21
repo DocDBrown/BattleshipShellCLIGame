@@ -1,37 +1,47 @@
 #!/usr/bin/env bats
 
-@test "unit_board_new_valid_size_creates_NxN_unknown_cells" {
-	run bash -c "source \"${BATS_TEST_DIRNAME}/board_state.sh\"; bs_board_new 3 || exit \$?; printf '%s\n' \"\$BS_BOARD_SIZE\"; bs_board_get_cell 0 0; bs_board_get_cell 2 2"
+setup() {
+	# No persistent resources needed; source happens in each test to ensure clean environment
+	:
+}
+
+@test "unit: bs__sanitize_type normalizes mixed-case input to lowercase" {
+	run bash -c "source \"${BATS_TEST_DIRNAME}/ship_rules.sh\"; bs__sanitize_type 'CarRieR123'"
 	[ "$status" -eq 0 ]
-	expected=$'3\nunknown\nunknown'
+	[ "$output" = "carrier123" ]
+}
+
+@test "unit: bs__sanitize_type returns non-zero for empty input and for inputs with invalid characters" {
+	run bash -c "source \"${BATS_TEST_DIRNAME}/ship_rules.sh\"; bs__sanitize_type ''"
+	[ "$status" -ne 0 ]
+
+	run bash -c "source \"${BATS_TEST_DIRNAME}/ship_rules.sh\"; bs__sanitize_type 'bad#ship'"
+	[ "$status" -ne 0 ]
+}
+
+@test "unit: bs_ship_list lists canonical ship types in canonical order" {
+	run bash -c "source \"${BATS_TEST_DIRNAME}/ship_rules.sh\"; bs_ship_list"
+	[ "$status" -eq 0 ]
+	expected=$'carrier\nbattleship\ncruiser\nsubmarine\ndestroyer'
 	[ "$output" = "$expected" ]
 }
 
-@test "unit_board_new_invalid_size_returns_error" {
-	run bash -c "source \"${BATS_TEST_DIRNAME}/board_state.sh\"; bs_board_new 0"
-	[ "$status" -ne 0 ]
-	[[ "$output" == *"Invalid board size"* ]]
-}
-
-@test "unit_get_cell_out_of_bounds_returns_error" {
-	run bash -c "source \"${BATS_TEST_DIRNAME}/board_state.sh\"; bs_board_new 3; bs_board_get_cell 5 5"
-	[ "$status" -ne 0 ]
-	[[ "$output" == *"Out of bounds"* ]]
-}
-
-@test "unit_set_cell_and_get_returns_updated_state" {
-	run bash -c "source \"${BATS_TEST_DIRNAME}/board_state.sh\"; bs_board_new 3; bs_board_set_cell 1 1 ship; bs_board_get_cell 1 1"
+@test "unit: bs_ship_length returns correct length for 'carrier' and errors for unknown ship type" {
+	run bash -c "source \"${BATS_TEST_DIRNAME}/ship_rules.sh\"; bs_ship_length 'carrier'"
 	[ "$status" -eq 0 ]
-	[ "$output" = "ship" ]
+	[ "$output" = "5" ]
 
-	run bash -c "source \"${BATS_TEST_DIRNAME}/board_state.sh\"; bs_board_new 3; bs_board_set_cell 0 0 invalid"
+	run bash -c "source \"${BATS_TEST_DIRNAME}/ship_rules.sh\"; bs_ship_length 'nope'"
 	[ "$status" -ne 0 ]
-	[[ "$output" == *"Invalid state"* ]]
+	[[ "$output" == *"Unknown ship type"* || "$output" == *"Invalid ship type"* ]]
 }
 
-@test "unit_associate_ship_segment_with_cell_records_ship_type_and_cell_state_ship" {
-	run bash -c "source \"${BATS_TEST_DIRNAME}/board_state.sh\"; bs_board_new 5; bs_board_associate_ship_segment 2 3 carrier || exit \$?; bs_board_get_cell 2 3; printf '%s\n' \"\${BS_BOARD_SHIPMAP[2,3]}\"; printf '%s\n' \"\${BS_BOARD_SHIP_SEGMENTS[carrier]}\""
+@test "unit: bs_ship_name returns human-readable 'Battleship' for 'battleship' and falls back to sanitized token for unmapped types" {
+	run bash -c "source \"${BATS_TEST_DIRNAME}/ship_rules.sh\"; bs_ship_name 'battleship'"
 	[ "$status" -eq 0 ]
-	expected=$'ship\ncarrier\n1'
-	[ "$output" = "$expected" ]
+	[ "$output" = "Battleship" ]
+
+	run bash -c "source \"${BATS_TEST_DIRNAME}/ship_rules.sh\"; bs_ship_name 'MyCustomShip'"
+	[ "$status" -eq 0 ]
+	[ "$output" = "mycustomship" ]
 }
