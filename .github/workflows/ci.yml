@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck and bats
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck bats
+
+      # Lint all .sh and .bats files (excluding .uitg-cache and test)
+      # Assumes you saved the first script as scripts/lint.sh and made it executable.
+      - name: Run shell lint
+        run: |
+          chmod +x scripts/lint.sh
+          scripts/lint.sh .
+
+      # Run all .bats tests (excluding ./test and ./.uitg-cache)
+      # Assumes you saved the second script as scripts/run-bats.sh and made it executable.
+      - name: Run bats tests
+        run: |
+          chmod +x scripts/run-bats.sh
+          scripts/run-bats.sh
