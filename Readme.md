@@ -1,6 +1,6 @@
 # Battleship in Shell-Script CLI Game for 2 players over internet
 
-![CI – Lint & Tests](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml/badge.svg?branch=main)
+![CI – Lint & Tests](https://github.com/DocDBrown/BattleshipShellCLIGame/actions/workflows/ci.yml/badge.svg?branch=main)
 
 <img src="battleship1.webp" alt="May God forgive you, but I wont" style="width: 90%;"/>
 

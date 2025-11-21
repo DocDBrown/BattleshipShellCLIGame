@@ -112,10 +112,10 @@ bs_board_get_state() {
     printf "Coordinates out of bounds: %s %s\n" "$1" "$2" >&2
     return 2
   }
-  
+
   local key="${_BS_RET_R}_${_BS_RET_C}"
   local var_name="BS_BOARD_CELLSTATE_${key}"
-  
+
   # Indirection compatible with Bash 3.2+
   if [[ -n "${!var_name+x}" ]]; then
     printf "%s" "${!var_name}"
@@ -133,7 +133,7 @@ bs_board_get_owner() {
 
   local key="${_BS_RET_R}_${_BS_RET_C}"
   local var_name="BS_BOARD_OWNER_${key}"
-  
+
   if [[ -n "${!var_name+x}" ]]; then
     printf "%s" "${!var_name}"
   else
@@ -145,14 +145,15 @@ bs_board_get_owner() {
 bs_board__inc_ship_segment() {
   local ship="$1"
   # Add ship to seen list if not already there
-  if [[ ! " $_BS_BOARD_SEEN_SHIPS " =~ " ${ship} " ]]; then
+  if [[ " $_BS_BOARD_SEEN_SHIPS " != *" ${ship} "* ]]; then
     _BS_BOARD_SEEN_SHIPS="${_BS_BOARD_SEEN_SHIPS} ${ship}"
   fi
 
-  local sanitized_ship=$(_bs_board__sanitize_for_var "$ship")
+  local sanitized_ship
+  sanitized_ship=$(_bs_board__sanitize_for_var "$ship")
   local seg_var="BS_BOARD_SHIP_SEGMENTS_${sanitized_ship}"
   local cur_segs="${!seg_var:-0}"
-  
+
   eval "${seg_var}=$(( cur_segs + 1 ))"
   BS_BOARD_TOTAL_SEGMENTS=$(( BS_BOARD_TOTAL_SEGMENTS + 1 ))
   BS_BOARD_REMAINING_SEGMENTS=$(( BS_BOARD_REMAINING_SEGMENTS + 1 ))
@@ -195,11 +196,12 @@ bs_board_set_ship() {
 
   # Decrement previous owner if overwriting
   if [[ "$cur_state" == "ship" && -n "$cur_owner" && "$cur_owner" != "$ship" ]]; then
-    local sanitized_cur_owner=$(_bs_board__sanitize_for_var "$cur_owner")
+    local sanitized_cur_owner
+    sanitized_cur_owner=$(_bs_board__sanitize_for_var "$cur_owner")
     local seg_var="BS_BOARD_SHIP_SEGMENTS_${sanitized_cur_owner}"
     local cur_segs="${!seg_var:-0}"
     eval "${seg_var}=$(( cur_segs - 1 ))"
-    
+
     BS_BOARD_TOTAL_SEGMENTS=$(( BS_BOARD_TOTAL_SEGMENTS - 1 ))
     BS_BOARD_REMAINING_SEGMENTS=$(( BS_BOARD_REMAINING_SEGMENTS - 1 ))
     if (( BS_BOARD_REMAINING_SEGMENTS < 0 )); then
@@ -217,7 +219,7 @@ bs_board_set_ship() {
 # Mark a coordinate as a hit.
 bs_board_set_hit() {
   local raw_r="$1" raw_c="$2"
-  
+
   bs_board__normalize_coord "$raw_r" "$raw_c" || {
     printf "Coordinates out of bounds: %s %s\n" "$raw_r" "$raw_c" >&2
     return 2
@@ -237,11 +239,12 @@ bs_board_set_hit() {
   eval "${state_var}='hit'"
 
   if [[ -n "$owner" && "$cur_state" == "ship" ]]; then
-    local sanitized_owner=$(_bs_board__sanitize_for_var "$owner")
+    local sanitized_owner
+    sanitized_owner=$(_bs_board__sanitize_for_var "$owner")
     local hit_var="BS_BOARD_HITS_BY_SHIP_${sanitized_owner}"
     local cur_hits="${!hit_var:-0}"
     eval "${hit_var}=$(( cur_hits + 1 ))"
-    
+
     BS_BOARD_REMAINING_SEGMENTS=$(( BS_BOARD_REMAINING_SEGMENTS - 1 ))
     if (( BS_BOARD_REMAINING_SEGMENTS < 0 )); then
       BS_BOARD_REMAINING_SEGMENTS=0
@@ -254,7 +257,7 @@ bs_board_set_hit() {
 # Mark a coordinate as a miss and ensure owner is unset for that cell
 bs_board_set_miss() {
   local raw_r="$1" raw_c="$2"
-  
+
   bs_board__normalize_coord "$raw_r" "$raw_c" || {
     printf "Coordinates out of bounds: %s %s\n" "$raw_r" "$raw_c" >&2
     return 2
@@ -289,7 +292,8 @@ bs_board_ship_is_sunk() {
     ship="${raw_ship,,}"
   fi
 
-  local sanitized_ship=$(_bs_board__sanitize_for_var "$ship")
+  local sanitized_ship
+  sanitized_ship=$(_bs_board__sanitize_for_var "$ship")
   local placed_var="BS_BOARD_SHIP_SEGMENTS_${sanitized_ship}"
   local hits_var="BS_BOARD_HITS_BY_SHIP_${sanitized_ship}"
   local placed="${!placed_var:-0}"
@@ -336,7 +340,8 @@ bs_board_ship_remaining_segments() {
     ship="${raw_ship,,}"
   fi
 
-  local sanitized_ship=$(_bs_board__sanitize_for_var "$ship")
+  local sanitized_ship
+  sanitized_ship=$(_bs_board__sanitize_for_var "$ship")
   local placed_var="BS_BOARD_SHIP_SEGMENTS_${sanitized_ship}"
   local hits_var="BS_BOARD_HITS_BY_SHIP_${sanitized_ship}"
   local placed="${!placed_var:-0}"
