@@ -6,7 +6,7 @@
 
 ## Building in progress....
 
-When Automated Application Generation and Validation is Complete Run the game with 
+When Automated Application Generation and Validation is Complete (fixing minor bugs) Run the game with 
 
 ```json
 bash battleship.sh
