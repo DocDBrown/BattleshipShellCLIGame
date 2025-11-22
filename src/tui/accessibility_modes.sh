@@ -126,8 +126,8 @@ bs_accessibility_set_mode() {
 
 	# Respect global monochrome/NO_COLOR hints for manual toggles too:
 	# when any of these are set, refuse to switch into a color-dependent mode.
-	if [ "${mode}" != "monochrome" ] \
-		&& { [ -n "${BS_MONOCHROME-}" ] || [ -n "${NO_COLOR-}" ] || [ -n "${BS_NO_COLOR-}" ]; }; then
+	if [ "${mode}" != "monochrome" ] &&
+		{ [ -n "${BS_MONOCHROME-}" ] || [ -n "${NO_COLOR-}" ] || [ -n "${BS_NO_COLOR-}" ]; }; then
 		return 1
 	fi
 

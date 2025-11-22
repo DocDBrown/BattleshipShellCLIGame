@@ -21,7 +21,8 @@ teardown() {
 }
 
 @test "mapping_returns_non_empty_values_for_all_roles_in_color_mode" {
-	run bash -c "export COLORTERM=truecolor; unset BS_ACCESS_MODE; src_dir='${BATS_TEST_DIRNAME}'; source \"\$src_dir/../util/terminal_capabilities.sh\"; source \"\$src_dir/accessibility_modes.sh\"; bs_accessibility_map_all"
+	# Added export TERM=xterm to ensure color support is not disabled by TERM=dumb
+	run bash -c "export TERM=xterm; export COLORTERM=truecolor; unset BS_ACCESS_MODE; src_dir='${BATS_TEST_DIRNAME}'; source \"\$src_dir/../util/terminal_capabilities.sh\"; source \"\$src_dir/accessibility_modes.sh\"; bs_accessibility_map_all"
 	[ "$status" -eq 0 ]
 	for role in hit miss ship water status; do
 		value=$(printf "%s" "$output" | awk -F= -v r="$role" '$1==r{print substr($0,index($0,"=")+1)}')
@@ -45,7 +46,8 @@ teardown() {
 }
 
 @test "mapping_hit_role_differs_between_color_and_monochrome_modes" {
-	run bash -c "export COLORTERM=truecolor; unset BS_ACCESS_MODE; src_dir='${BATS_TEST_DIRNAME}'; source \"\$src_dir/../util/terminal_capabilities.sh\"; source \"\$src_dir/accessibility_modes.sh\"; bs_accessibility_style_for hit"
+	# Added export TERM=xterm to ensure color support is not disabled by TERM=dumb
+	run bash -c "export TERM=xterm; export COLORTERM=truecolor; unset BS_ACCESS_MODE; src_dir='${BATS_TEST_DIRNAME}'; source \"\$src_dir/../util/terminal_capabilities.sh\"; source \"\$src_dir/accessibility_modes.sh\"; bs_accessibility_style_for hit"
 	[ "$status" -eq 0 ]
 	color_hit="$output"
 	[ -n "$color_hit" ]
