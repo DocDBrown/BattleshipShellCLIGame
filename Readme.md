@@ -7,6 +7,7 @@
 ## Building in progress....
 
 When Automated Application Generation and Validation is Complete (fixing minor bugs) Run the game with 
+- LLMs cant manage stateful shell-script apps without tweaking prompts
 
 ```json
 bash battleship.sh
