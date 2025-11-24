@@ -1,12 +1,15 @@
 # Battleship in Shell-Script CLI Game for 2 players over internet
 
+- When Automated Application Generation and Validation is Complete (fixing minor bugs) Run the game with 
+- LLMs cant manage stateful shell-script apps without tweaking prompts
+
 ![CI – Lint & Tests](https://github.com/DocDBrown/BattleshipShellCLIGame/actions/workflows/ci.yml/badge.svg?branch=main&event=push)
 
 <img src="battleship1.webp" alt="May God forgive you, but I wont" style="width: 90%;"/>
 
 ## Building in progress....
 
-When Automated Application Generation and Validation is Complete (fixing minor bugs) Run the game with 
+- When Automated Application Generation and Validation is Complete (fixing minor bugs) Run the game with 
 - LLMs cant manage stateful shell-script apps without tweaking prompts
 
 ```json
