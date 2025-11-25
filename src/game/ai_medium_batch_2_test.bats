@@ -217,8 +217,8 @@ teardown() {
 		read -r rr rc <<<"$s"
 		bs_ai_medium_record_result "$rr" "$rc" miss || true
 		if { [ "$rr" -eq 0 ] && [ "$rc" -eq 0 ]; } ||
-		   { [ "$rr" -eq 1 ] && [ "$rc" -eq 1 ]; } ||
-		   { [ "$rr" -eq 1 ] && [ "$rc" -eq 2 ]; }; then
+			{ [ "$rr" -eq 1 ] && [ "$rc" -eq 1 ]; } ||
+			{ [ "$rr" -eq 1 ] && [ "$rc" -eq 2 ]; }; then
 			echo "AI returned a previously confirmed miss during progression: ${rr},${rc}" >&2
 			return 1
 		fi

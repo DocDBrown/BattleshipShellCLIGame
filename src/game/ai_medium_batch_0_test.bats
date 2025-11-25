@@ -9,7 +9,7 @@ bs_rng_init_from_seed() {
 		return 2
 	fi
 	BS_RNG_MODE="lcg"
-	BS_RNG_STATE=$(( $1 & 0xFFFFFFFF ))
+	BS_RNG_STATE=$(($1 & 0xFFFFFFFF))
 	return 0
 }
 

@@ -32,7 +32,7 @@ _bs_ai_medium_idx_from_raw() {
 	if [[ -z "${BS_AI_MEDIUM_BOARD_SIZE:-}" || "${BS_AI_MEDIUM_BOARD_SIZE}" -le 0 ]]; then
 		return 3
 	fi
-	if (( raw_r < 0 || raw_r >= BS_AI_MEDIUM_BOARD_SIZE || raw_c < 0 || raw_c >= BS_AI_MEDIUM_BOARD_SIZE )); then
+	if ((raw_r < 0 || raw_r >= BS_AI_MEDIUM_BOARD_SIZE || raw_c < 0 || raw_c >= BS_AI_MEDIUM_BOARD_SIZE)); then
 		return 4
 	fi
 	_BS_AI_MEDIUM_RET_IDX=$((raw_r * BS_AI_MEDIUM_BOARD_SIZE + raw_c))
@@ -80,23 +80,27 @@ _bs_ai_medium_enqueue_neighbors() {
 	fi
 	r=$((idx / BS_AI_MEDIUM_BOARD_SIZE))
 	c=$((idx % BS_AI_MEDIUM_BOARD_SIZE))
-	if (( r - 1 >= 0 )); then
-		nr=$((r - 1)); nc=$c
+	if ((r - 1 >= 0)); then
+		nr=$((r - 1))
+		nc=$c
 		nidx=$((nr * BS_AI_MEDIUM_BOARD_SIZE + nc))
 		_bs_ai_medium_push_hunt "${nidx}" || true
 	fi
-	if (( r + 1 < BS_AI_MEDIUM_BOARD_SIZE )); then
-		nr=$((r + 1)); nc=$c
+	if ((r + 1 < BS_AI_MEDIUM_BOARD_SIZE)); then
+		nr=$((r + 1))
+		nc=$c
 		nidx=$((nr * BS_AI_MEDIUM_BOARD_SIZE + nc))
 		_bs_ai_medium_push_hunt "${nidx}" || true
 	fi
-	if (( c - 1 >= 0 )); then
-		nr=$r; nc=$((c - 1))
+	if ((c - 1 >= 0)); then
+		nr=$r
+		nc=$((c - 1))
 		nidx=$((nr * BS_AI_MEDIUM_BOARD_SIZE + nc))
 		_bs_ai_medium_push_hunt "${nidx}" || true
 	fi
-	if (( c + 1 < BS_AI_MEDIUM_BOARD_SIZE )); then
-		nr=$r; nc=$((c + 1))
+	if ((c + 1 < BS_AI_MEDIUM_BOARD_SIZE)); then
+		nr=$r
+		nc=$((c + 1))
 		nidx=$((nr * BS_AI_MEDIUM_BOARD_SIZE + nc))
 		_bs_ai_medium_push_hunt "${nidx}" || true
 	fi
