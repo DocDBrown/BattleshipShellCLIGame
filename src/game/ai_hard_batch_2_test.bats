@@ -3,11 +3,11 @@
 # Integration with a richer board_state / RNG, plus idempotence & exhaustion
 
 setup() {
-  BS_TMP_DIR="$(mktemp -d)"
-  export BS_TMP_DIR
+	BS_TMP_DIR="$(mktemp -d)"
+	export BS_TMP_DIR
 
-  # rng.sh with real seeding and uniform int_range
-  cat >"${BS_TMP_DIR}/rng.sh" <<'EOF'
+	# rng.sh with real seeding and uniform int_range
+	cat >"${BS_TMP_DIR}/rng.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -71,8 +71,8 @@ bs_rng_int_range() {
 }
 EOF
 
-  # Minimal but usable board_state.sh – only what these tests need:
-  cat >"${BS_TMP_DIR}/board_state.sh" <<'EOF'
+	# Minimal but usable board_state.sh – only what these tests need:
+	cat >"${BS_TMP_DIR}/board_state.sh" <<'EOF'
 #!/usr/bin/env bash
 set -o nounset
 set -o pipefail
@@ -150,130 +150,130 @@ bs_board_set_miss() {
 }
 EOF
 
-  cp "${BATS_TEST_DIRNAME}/ai_hard.sh" "${BS_TMP_DIR}/ai_hard.sh"
+	cp "${BATS_TEST_DIRNAME}/ai_hard.sh" "${BS_TMP_DIR}/ai_hard.sh"
 
-  # shellcheck disable=SC1091
-  source "${BS_TMP_DIR}/rng.sh"
-  # shellcheck disable=SC1091
-  source "${BS_TMP_DIR}/board_state.sh"
-  # shellcheck disable=SC1091
-  source "${BS_TMP_DIR}/ai_hard.sh"
+	# shellcheck disable=SC1091
+	source "${BS_TMP_DIR}/rng.sh"
+	# shellcheck disable=SC1091
+	source "${BS_TMP_DIR}/board_state.sh"
+	# shellcheck disable=SC1091
+	source "${BS_TMP_DIR}/ai_hard.sh"
 
-  bs_rng_init_from_seed 123
-  bs_board_new 5
-  bs_ai_hard_init
+	bs_rng_init_from_seed 123
+	bs_board_new 5
+	bs_ai_hard_init
 }
 
 teardown() {
-  if [ -n "${BS_TMP_DIR:-}" ]; then
-    rm -rf "${BS_TMP_DIR}"
-  fi
+	if [ -n "${BS_TMP_DIR:-}" ]; then
+		rm -rf "${BS_TMP_DIR}"
+	fi
 }
 
 @test "unit_ai_hard_does_not_read_hidden_layout_and_uses_only_reported_outcomes" {
-  # Place a ship, but AI must not peek at layout
-  bs_board_set_ship 0 0 destroyer
+	# Place a ship, but AI must not peek at layout
+	bs_board_set_ship 0 0 destroyer
 
-  local visited_before=${BS_AI_HARD_VISITED_1_1:-}
-  [ -z "$visited_before" ]
+	local visited_before=${BS_AI_HARD_VISITED_1_1:-}
+	[ -z "$visited_before" ]
 
-  local shot
-  shot="$(bs_ai_hard_choose_shot)"
-  [ -n "$shot" ]
+	local shot
+	shot="$(bs_ai_hard_choose_shot)"
+	[ -n "$shot" ]
 
-  local r c
-  r=${shot%% *}
-  c=${shot##* }
+	local r c
+	r=${shot%% *}
+	c=${shot##* }
 
-  [ "$r" -ge 1 ]
-  [ "$r" -le "$BS_BOARD_SIZE" ]
-  [ "$c" -ge 1 ]
-  [ "$c" -le "$BS_BOARD_SIZE" ]
+	[ "$r" -ge 1 ]
+	[ "$r" -le "$BS_BOARD_SIZE" ]
+	[ "$c" -ge 1 ]
+	[ "$c" -le "$BS_BOARD_SIZE" ]
 
-  bs_ai_hard_notify_result "$r" "$c" "miss"
-  local visited_after_var="BS_AI_HARD_VISITED_${r}_${c}"
-  [ "${!visited_after_var:-}" = "1" ]
+	bs_ai_hard_notify_result "$r" "$c" "miss"
+	local visited_after_var="BS_AI_HARD_VISITED_${r}_${c}"
+	[ "${!visited_after_var:-}" = "1" ]
 }
 
 @test "unit_ai_hard_is_idempotent_when_receiving_duplicate_outcome_reports" {
-  bs_rng_init_from_seed 42
-  bs_board_new 4
-  bs_ai_hard_init
+	bs_rng_init_from_seed 42
+	bs_board_new 4
+	bs_ai_hard_init
 
-  local shot
-  shot="$(bs_ai_hard_choose_shot)"
-  local r=${shot%% *}
-  local c=${shot##* }
+	local shot
+	shot="$(bs_ai_hard_choose_shot)"
+	local r=${shot%% *}
+	local c=${shot##* }
 
-  bs_ai_hard_notify_result "$r" "$c" "hit"
-  local queue_len1=${#BS_AI_HARD_TARGET_QUEUE_R[@]}
-  local hits_len1=${#BS_AI_HARD_HITS_R[@]}
+	bs_ai_hard_notify_result "$r" "$c" "hit"
+	local queue_len1=${#BS_AI_HARD_TARGET_QUEUE_R[@]}
+	local hits_len1=${#BS_AI_HARD_HITS_R[@]}
 
-  # Repeat same report
-  bs_ai_hard_notify_result "$r" "$c" "hit"
-  local queue_len2=${#BS_AI_HARD_TARGET_QUEUE_R[@]}
-  local hits_len2=${#BS_AI_HARD_HITS_R[@]}
+	# Repeat same report
+	bs_ai_hard_notify_result "$r" "$c" "hit"
+	local queue_len2=${#BS_AI_HARD_TARGET_QUEUE_R[@]}
+	local hits_len2=${#BS_AI_HARD_HITS_R[@]}
 
-  [ "$queue_len1" -eq "$queue_len2" ]
-  [ "$hits_len1" -eq "$hits_len2" ]
+	[ "$queue_len1" -eq "$queue_len2" ]
+	[ "$hits_len1" -eq "$hits_len2" ]
 }
 
 @test "unit_ai_hard_prefers_continuing_existing_target_hunts_over_random_scouting" {
-  bs_rng_init_from_seed 7
-  bs_board_new 4
-  bs_ai_hard_init
+	bs_rng_init_from_seed 7
+	bs_board_new 4
+	bs_ai_hard_init
 
-  bs_ai_hard_notify_result 2 2 "hit"
+	bs_ai_hard_notify_result 2 2 "hit"
 
-  local next
-  next="$(bs_ai_hard_choose_shot)"
-  local nr=${next%% *}
-  local nc=${next##* }
+	local next
+	next="$(bs_ai_hard_choose_shot)"
+	local nr=${next%% *}
+	local nc=${next##* }
 
-  [ "$nr" -ge 1 ]
-  [ "$nr" -le "$BS_BOARD_SIZE" ]
-  [ "$nc" -ge 1 ]
-  [ "$nc" -le "$BS_BOARD_SIZE" ]
+	[ "$nr" -ge 1 ]
+	[ "$nr" -le "$BS_BOARD_SIZE" ]
+	[ "$nc" -ge 1 ]
+	[ "$nc" -le "$BS_BOARD_SIZE" ]
 
-  # Neighbor check: one of 4 orthogonal neighbors
-  [ $((nr == 1 && nc == 2 || nr == 3 && nc == 2 || nr == 2 && nc == 1 || nr == 2 && nc == 3)) -eq 1 ]
+	# Neighbor check: one of 4 orthogonal neighbors
+	[ $((nr == 1 && nc == 2 || nr == 3 && nc == 2 || nr == 2 && nc == 1 || nr == 2 && nc == 3)) -eq 1 ]
 }
 
 @test "unit_ai_hard_selects_among_multiple_partial_hunts_consistently_using_priority_and_rng_ties" {
-  bs_rng_init_from_seed 99
-  bs_board_new 5
-  bs_ai_hard_init
+	bs_rng_init_from_seed 99
+	bs_board_new 5
+	bs_ai_hard_init
 
-  # Two separate hits (no clear orientation)
-  bs_ai_hard_notify_result 2 2 "hit"
-  bs_ai_hard_notify_result 4 4 "hit"
+	# Two separate hits (no clear orientation)
+	bs_ai_hard_notify_result 2 2 "hit"
+	bs_ai_hard_notify_result 4 4 "hit"
 
-  # Make sure some neighbors are visible to AI
-  unset BS_AI_HARD_VISITED_3_2 || true
-  unset BS_AI_HARD_VISITED_1_2 || true
+	# Make sure some neighbors are visible to AI
+	unset BS_AI_HARD_VISITED_3_2 || true
+	unset BS_AI_HARD_VISITED_1_2 || true
 
-  local choice1 choice2
-  choice1="$(bs_ai_hard_choose_shot)"
-  bs_ai_hard_notify_result "${choice1%% *}" "${choice1##* }" "miss"
-  choice2="$(bs_ai_hard_choose_shot)"
+	local choice1 choice2
+	choice1="$(bs_ai_hard_choose_shot)"
+	bs_ai_hard_notify_result "${choice1%% *}" "${choice1##* }" "miss"
+	choice2="$(bs_ai_hard_choose_shot)"
 
-  [ "$choice1" != "$choice2" ]
+	[ "$choice1" != "$choice2" ]
 }
 
 @test "unit_ai_hard_returns_no_move_when_all_board_cells_are_exhausted" {
-  bs_rng_init_from_seed 5
-  bs_board_new 3
-  bs_ai_hard_init
+	bs_rng_init_from_seed 5
+	bs_board_new 3
+	bs_ai_hard_init
 
-  local r c
-  for ((r = 1; r <= BS_BOARD_SIZE; r++)); do
-    for ((c = 1; c <= BS_BOARD_SIZE; c++)); do
-      local v="BS_AI_HARD_VISITED_${r}_${c}"
-      eval "${v}=1"
-    done
-  done
+	local r c
+	for ((r = 1; r <= BS_BOARD_SIZE; r++)); do
+		for ((c = 1; c <= BS_BOARD_SIZE; c++)); do
+			local v="BS_AI_HARD_VISITED_${r}_${c}"
+			eval "${v}=1"
+		done
+	done
 
-  run bs_ai_hard_choose_shot
-  [ "$status" -ne 0 ]
-  [ -z "$output" ]
+	run bs_ai_hard_choose_shot
+	[ "$status" -ne 0 ]
+	[ -z "$output" ]
 }
