@@ -2,7 +2,7 @@
 
 - When Automated Application Generation and Validation is Complete (fixing minor bugs) Run the game 
 - LLMs cant manage stateful shell-script apps without tweaking prompts - minor debugging
-- 24/31 files complete
+- 25/31 files complete
 - Obviously this is full app generation path, not the 'updating templates path' that Loveable use
 - Full production application generation with valdiation takes more time than 'using a template app'
 
