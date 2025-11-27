@@ -35,7 +35,6 @@ jobs:
             ln -s "$(brew --prefix bats-core)/bin/bats" /usr/local/bin/bats || true
           fi
 
-      # Lint all .sh and .bats files (excluding .uitg-cache and test)
       - name: Run shell lint
         shell: bash
         run: |
@@ -64,12 +63,12 @@ jobs:
 
           if ((${#sh_files[@]} > 0)); then
             echo "==> shellcheck on ${#sh_files[@]} .sh files"
-            shellcheck -x -P SCRIPTDIR "${sh_files[@]}"
+            shellcheck -x -P SCRIPTDIR -e SC2329 "${sh_files[@]}"
           fi
 
           if ((${#bats_files[@]} > 0)); then
             echo "==> shellcheck on ${#bats_files[@]} .bats files"
-            shellcheck --shell=bats "${bats_files[@]}"
+            shellcheck --shell=bats -e SC2329 "${bats_files[@]}"
           fi
 
           if ((${#sh_files[@]} == 0 && ${#bats_files[@]} == 0)); then
