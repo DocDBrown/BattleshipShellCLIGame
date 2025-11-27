@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
 
     runs-on: ${{ matrix.os }}
 
@@ -30,6 +30,13 @@ jobs:
         run: |
           brew update
           brew install shellcheck bats-core
+
+      - name: Install shellcheck (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          choco install shellcheck -y
+          shellcheck --version
 
       - name: Run shell lint
         shell: bash
