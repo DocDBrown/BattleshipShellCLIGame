@@ -9,7 +9,6 @@ on:
 jobs:
   lint-and-test:
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -18,29 +17,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- Linux Installation ---
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install shellcheck and bats
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck bats
 
-      # --- macOS Installation ---
-      # Note: We install coreutils to get the 'timeout' command used in your script
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install shellcheck bats-core coreutils
-          # Link gtimeout to timeout for compatibility with your script
-          sudo ln -s "$(brew --prefix coreutils)/libexec/gnubin/timeout" /usr/local/bin/timeout
-
-      # --- Windows Installation ---
-      - name: Install dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          choco install shellcheck bats
-
-      # Lint all .sh and .bats files
+      # Lint all .sh and .bats files (excluding .uitg-cache and test)
       - name: Run shell lint
         shell: bash
         run: |
@@ -81,7 +63,7 @@ jobs:
             echo "No .sh or .bats files found under: $ROOT (excluding .uitg-cache and test)"
           fi
 
-      # Run all .bats tests
+      # Run all .bats tests (excluding ./test and ./.uitg-cache)
       - name: Run bats tests
         shell: bash
         run: |
@@ -93,9 +75,6 @@ jobs:
           # excluding ./test and ./.uitg-cache
           while IFS= read -r -d '' f; do
             echo "Running $f"
-            # Note: 'timeout' is a GNU command. 
-            # On macOS, we installed coreutils to provide it.
-            # On Windows (Git Bash), it is usually available.
             if ! timeout 60s bats "$f"; then
               status=$?
               echo "File $f failed (exit $status)"
