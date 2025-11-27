@@ -16,6 +16,7 @@ jobs:
 
     steps:
       # 1. Fix Windows Line Endings (CRLF -> LF)
+      # Must be done BEFORE checkout so files are written correctly on disk.
       - name: Configure Git for LF line endings (Windows)
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf input
@@ -33,22 +34,17 @@ jobs:
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          # Install Bash 5, Shellcheck, BATS, Coreutils (GNU tools), and GNU Sed
-          brew install bash shellcheck bats-core coreutils gnu-sed
-
-          # PREPEND GNU tools to PATH so 'sed', 'mktemp', etc. use the GNU versions
-          # instead of the BSD versions native to macOS.
-          echo "$(brew --prefix)/opt/coreutils/libexec/gnubin" >> $GITHUB_PATH
-          echo "$(brew --prefix)/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
-          
-          # Ensure the new bash is found first
+          # Install bash (to get version 5+), shellcheck, bats, and coreutils (for timeout)
+          brew install bash shellcheck bats-core coreutils
+          # Link gtimeout to timeout so the script works
+          sudo ln -s "$(brew --prefix coreutils)/libexec/gnubin/timeout" /usr/local/bin/timeout
+          # Ensure the new bash is found first in PATH so scripts use Bash 5 instead of 3.2
           echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          # Install OpenSSL (needed for checksum fallbacks in tests)
-          choco install shellcheck openssl
+          choco install shellcheck
           npm install -g bats
 
       # 3. Run Lint
@@ -85,6 +81,7 @@ jobs:
 
           if ((${#bats_files[@]} > 0)); then
             echo "==> shellcheck on ${#bats_files[@]} .bats files"
+            # -e SC2329 ignores "function defined but not used" errors common in BATS files
             shellcheck --shell=bats -e SC2329 "${bats_files[@]}"
           fi
 
@@ -100,10 +97,10 @@ jobs:
 
           RC=0
 
-          # Find all .bats files recursively
+          # Find all .bats files recursively from the current directory,
+          # excluding ./test and ./.uitg-cache
           while IFS= read -r -d '' f; do
             echo "Running $f"
-            # Use 'timeout' (which is now GNU timeout on macOS too)
             if ! timeout 60s bats "$f"; then
               status=$?
               echo "File $f failed (exit $status)"
