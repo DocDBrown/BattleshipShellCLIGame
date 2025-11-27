@@ -3,10 +3,10 @@
 setup() {
 	TMPROOT="$(mktemp -d)"
 	mkdir -p "$TMPROOT/persistence" "$TMPROOT/runtime" "$TMPROOT/util"
-	
+
 	SCRIPT="$TMPROOT/persistence/save_state.sh"
 	cp "${BATS_TEST_DIRNAME}/save_state.sh" "$SCRIPT"
-	
+
 	# Mock runtime/paths.sh
 	cat >"$TMPROOT/runtime/paths.sh" <<'EOF'
 #!/usr/bin/env bash

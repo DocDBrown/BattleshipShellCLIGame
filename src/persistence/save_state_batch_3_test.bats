@@ -5,7 +5,7 @@ setup() {
 	mkdir -p "$TMPDIR/persistence" "$TMPDIR/runtime" "$TMPDIR/util"
 	# Copy the script under test into an isolated test workspace
 	cp "${BATS_TEST_DIRNAME}/save_state.sh" "$TMPDIR/persistence/save_state.sh"
-	
+
 	# Mock runtime/paths.sh
 	cat >"$TMPDIR/runtime/paths.sh" <<'EOF'
 #!/usr/bin/env bash

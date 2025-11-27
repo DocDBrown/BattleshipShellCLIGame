@@ -6,14 +6,14 @@ setup() {
 		echo "failed to create tempdir" >&2
 		exit 1
 	fi
-	
+
 	# Create directory structure for script and helpers
 	mkdir -p "$TMPTESTDIR/persistence" "$TMPTESTDIR/runtime" "$TMPTESTDIR/util"
-	
+
 	# Copy the script under test
 	cp "${BATS_TEST_DIRNAME}/save_state.sh" "$TMPTESTDIR/persistence/save_state.sh"
 	chmod +x "$TMPTESTDIR/persistence/save_state.sh"
-	
+
 	# Mock runtime/paths.sh
 	cat >"$TMPTESTDIR/runtime/paths.sh" <<'EOF'
 #!/usr/bin/env bash
@@ -100,24 +100,24 @@ bs_board_get_state() { echo "unknown"; }
 bs_board_get_owner() { echo ""; }
 EOF
 
-    # Mock model/ship_rules.sh
-    cat >"$TMPTESTDIR/model/ship_rules.sh" <<'EOF'
+	# Mock model/ship_rules.sh
+	cat >"$TMPTESTDIR/model/ship_rules.sh" <<'EOF'
 bs_ship_list() { echo "destroyer"; }
 bs_ship_length() { echo "2"; }
 bs_ship_name() { echo "Destroyer"; }
 bs_board_ship_remaining_segments() { echo "2"; }
 EOF
 
-    # Mock game/stats.sh
-    cat >"$TMPTESTDIR/game/stats.sh" <<'EOF'
+	# Mock game/stats.sh
+	cat >"$TMPTESTDIR/game/stats.sh" <<'EOF'
 stats_summary_kv() { echo "shots=0"; }
 EOF
 
-    # Re-run with full mocks
-    run timeout 30s bash "$TMPTESTDIR/persistence/save_state.sh" --state-dir "$TMPTESTDIR/state"
-    [ "$status" -eq 0 ]
-    out_path="$output"
-    
+	# Re-run with full mocks
+	run timeout 30s bash "$TMPTESTDIR/persistence/save_state.sh" --state-dir "$TMPTESTDIR/state"
+	[ "$status" -eq 0 ]
+	out_path="$output"
+
 	grep -q '^### battleship_shell_script save' "$out_path"
 	grep -q '^### Config' "$out_path"
 	grep -q '^### Board' "$out_path"
@@ -147,7 +147,7 @@ printf 'CORRUPTED\n' >> "$file"
 printf "%s  %s\n" "$digest" "$file"
 SHAF
 	chmod +x "$BIN/sha256sum"
-	
+
 	# We need to ensure our mock checksum helper uses this sha256sum
 	# The mock in setup() uses `command -v sha256sum`.
 	# So we prepend BIN to PATH.
