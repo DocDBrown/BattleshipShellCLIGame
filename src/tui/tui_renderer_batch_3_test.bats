@@ -9,6 +9,10 @@ setup() {
 	. "${BATS_TEST_DIRNAME}/accessibility_modes.sh"
 	# Ensure deterministic probe state
 	unset BS_MONOCHROME BS_HIGH_CONTRAST BS_NO_COLOR NO_COLOR BS_ACCESS_MODE BS_ACCESS_MODE_LOCK BS_TERM_PROBED BS_TERM_HAS_COLOR BS_TERM_RESET_SEQ || true
+    
+    # Mock terminal capabilities to ensure tests run consistently in CI (TERM=dumb)
+    export BS_TERM_PROBED=1
+    export BS_TERM_HAS_COLOR=1
 }
 
 teardown() {

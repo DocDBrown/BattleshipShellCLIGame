@@ -178,7 +178,10 @@ if [ -f "${_script_dir}/../util/terminal_capabilities.sh" ]; then
 	# We still source this for compatibility, but we do not depend on its functions
 	. "${_script_dir}/../util/terminal_capabilities.sh"
 else
-	. "./src/util/terminal_capabilities.sh" 2>/dev/null || true
+	# Only source if the file exists to avoid "No such file" errors in test output
+	if [ -f "./src/util/terminal_capabilities.sh" ]; then
+		. "./src/util/terminal_capabilities.sh"
+	fi
 fi
 
 BS_ACCESS_MODE="${BS_ACCESS_MODE-}"
