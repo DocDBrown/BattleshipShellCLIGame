@@ -16,6 +16,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      # Ensure LF line endings on Windows checkout
+      - name: Configure git EOL (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global core.autocrlf false
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
