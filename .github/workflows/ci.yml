@@ -33,17 +33,22 @@ jobs:
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          # Install bash (v5+), shellcheck, bats-core, coreutils
-          brew install bash shellcheck bats-core coreutils
-          # Link gtimeout to timeout
-          sudo ln -s "$(brew --prefix coreutils)/libexec/gnubin/timeout" /usr/local/bin/timeout
-          # Add brew bin to PATH
+          # Install Bash 5, Shellcheck, BATS, Coreutils (GNU tools), and GNU Sed
+          brew install bash shellcheck bats-core coreutils gnu-sed
+
+          # PREPEND GNU tools to PATH so 'sed', 'mktemp', etc. use the GNU versions
+          # instead of the BSD versions native to macOS.
+          echo "$(brew --prefix)/opt/coreutils/libexec/gnubin" >> $GITHUB_PATH
+          echo "$(brew --prefix)/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
+          
+          # Ensure the new bash is found first
           echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install shellcheck
+          # Install OpenSSL (needed for checksum fallbacks in tests)
+          choco install shellcheck openssl
           npm install -g bats
 
       # 3. Run Lint
@@ -80,7 +85,6 @@ jobs:
 
           if ((${#bats_files[@]} > 0)); then
             echo "==> shellcheck on ${#bats_files[@]} .bats files"
-            # -e SC2329 ignores "function defined but not used" errors common in BATS
             shellcheck --shell=bats -e SC2329 "${bats_files[@]}"
           fi
 
@@ -94,17 +98,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          # On macOS, force BATS to use the Homebrew Bash (v5+) instead of system Bash (v3.2)
-          if [[ "$RUNNER_OS" == "macOS" ]]; then
-             export BATS_BASH="$(brew --prefix)/bin/bash"
-             echo "macOS detected: forcing BATS_BASH=$BATS_BASH"
-          fi
-
           RC=0
 
           # Find all .bats files recursively
           while IFS= read -r -d '' f; do
             echo "Running $f"
+            # Use 'timeout' (which is now GNU timeout on macOS too)
             if ! timeout 60s bats "$f"; then
               status=$?
               echo "File $f failed (exit $status)"
