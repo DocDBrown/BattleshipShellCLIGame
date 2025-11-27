@@ -40,7 +40,7 @@ jobs:
         run: |
           choco install shellcheck bats
 
-# Lint all .sh and .bats files (excluding .uitg-cache and test)
+      # Lint all .sh and .bats files
       - name: Run shell lint
         shell: bash
         run: |
@@ -74,14 +74,13 @@ jobs:
 
           if ((${#bats_files[@]} > 0)); then
             echo "==> shellcheck on ${#bats_files[@]} .bats files"
-            # Added -e SC2329 to ignore "function never invoked" errors common in BATS
-            shellcheck --shell=bats -e SC2329 "${bats_files[@]}"
+            shellcheck --shell=bats "${bats_files[@]}"
           fi
 
           if ((${#sh_files[@]} == 0 && ${#bats_files[@]} == 0)); then
             echo "No .sh or .bats files found under: $ROOT (excluding .uitg-cache and test)"
           fi
-          
+
       # Run all .bats tests
       - name: Run bats tests
         shell: bash
