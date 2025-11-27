@@ -29,16 +29,16 @@ bs_auto_place_help() {
 # Internal: check required commands and global variables. Returns 0 on success.
 _bs_auto__check_deps() {
 	local miss=0
-	local -a reqs=(bs_rng_int_range bs_placement_validate bs_board_set_ship bs_ship_list bs_ship_length)
+	local -a reqs=(bs_rng_int_range bs_placement_validate bs_board_set_ship bs_board_ship_remaining_segments bs_ship_list bs_ship_length)
 	local cmd
 	for cmd in "${reqs[@]}"; do
 		if ! command -v "$cmd" >/dev/null 2>&1; then
-			printf "Missing required function: %s\n" "$cmd" >&2
+			printf "%s\n" "Missing required function: $cmd" >&2
 			miss=1
 		fi
 	done
 	if [[ -z "${BS_BOARD_SIZE:-}" ]]; then
-		printf "Missing or unset BS_BOARD_SIZE (run bs_board_new first)\n" >&2
+		printf "%s\n" "Missing or unset BS_BOARD_SIZE (run bs_board_new first)" >&2
 		miss=1
 	fi
 	if ((miss)); then
@@ -52,11 +52,11 @@ _bs_auto__orient_to_delta() {
 	local orient_raw="${1:-}"
 	case "${orient_raw,,}" in
 	h | horizontal)
-		printf "%d %d" 0 1
+		printf "%d %d\n" 0 1
 		return 0
 		;;
 	v | vertical)
-		printf "%d %d" 1 0
+		printf "%d %d\n" 1 0
 		return 0
 		;;
 	*)
@@ -137,25 +137,41 @@ bs_auto_place_fleet() {
 			c=$(bs_rng_int_range 0 $((BS_BOARD_SIZE - 1)))
 
 			# Validate proposed placement with placement validator (no state changes)
+			# Use if/else to capture exit code safely without triggering set -e
+			local vrc
 			if bs_placement_validate "${r}" "${c}" "${orient}" "${ship}" >/dev/null 2>&1; then
+				vrc=0
+			else
+				vrc=$?
+			fi
+
+			if ((vrc != 0)); then
+				# Propagate certain validation errors as fatal so callers/tests can handle them.
+				# For example: 2 = invalid/unknown ship type, 5 = invalid orientation.
+				if ((vrc == 2 || vrc == 5)); then
+					return $vrc
+				fi
+				# For other non-fatal validation failures (overlap/out-of-bounds) continue retrying.
+			else
 				# place segments; placement validator guarantees in-bounds and no overlap
 				if ! length="$(bs_ship_length "${ship}" 2>/dev/null)"; then
 					# unexpected: could not determine length
-					printf "Internal error: could not determine length for %s\n" "${ship}" >&2
+					printf "%s\n" "Internal error: could not determine length for ${ship}" >&2
 					return 4
 				fi
 
 				if [[ ! "${length}" =~ ^[0-9]+$ ]]; then
-					printf "Internal error: invalid length for %s: %s\n" "${ship}" "${length}" >&2
+					printf "%s\n" "Internal error: invalid length for ${ship}: ${length}" >&2
 					return 4
 				fi
 
 				if ! _bs_auto__orient_to_delta "${orient}" >/dev/null 2>&1; then
-					printf "Internal error: invalid orientation mapping: %s\n" "${orient}" >&2
+					printf "%s\n" "Internal error: invalid orientation mapping: ${orient}" >&2
 					return 4
 				fi
 				# read dr dc
-				read -r dr dc < <(_bs_auto__orient_to_delta "${orient}")
+				# Use here-string with command substitution to ensure function visibility and newline
+				IFS=' ' read -r dr dc <<< "$(_bs_auto__orient_to_delta "${orient}")"
 
 				local failed_segment=0
 				for ((i = 0; i < length; i++)); do
@@ -169,7 +185,7 @@ bs_auto_place_fleet() {
 
 				if ((failed_segment)); then
 					# Partial placement is unexpected because placement validator passed.
-					printf "Internal error: partial placement for %s (attempt %d)\n" "${ship}" "${attempts}" >&2
+					printf "%s\n" "Internal error: partial placement for ${ship} (attempt ${attempts})" >&2
 					return 4
 				fi
 
