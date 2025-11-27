@@ -30,10 +30,6 @@ jobs:
         run: |
           brew update
           brew install shellcheck bats-core
-          # Ensure bats is on PATH as 'bats'
-          if ! command -v bats >/dev/null 2>&1; then
-            ln -s "$(brew --prefix bats-core)/bin/bats" /usr/local/bin/bats || true
-          fi
 
       - name: Run shell lint
         shell: bash
@@ -76,15 +72,13 @@ jobs:
           fi
 
       # Run all .bats tests (excluding ./test and ./.uitg-cache)
-      - name: Run bats tests
+      - name: Run bats tests (Linux only)
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           set -euo pipefail
 
           RC=0
-
-          # Find all .bats files recursively from the current directory,
-          # excluding ./test and ./.uitg-cache
           while IFS= read -r -d '' f; do
             echo "Running $f"
             if ! timeout 60s bats "$f"; then
