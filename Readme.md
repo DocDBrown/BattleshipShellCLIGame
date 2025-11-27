@@ -1,11 +1,7 @@
 # Battleship in Shell-Script CLI Game for 2 players over internet
 
-- When Automated Application Generation and Validation is Complete (fixing minor bugs) Run the game 
-- LLMs cant manage stateful shell-script apps without tweaking prompts - minor debugging
+- When Automated Application Generation and Validation is Complete Run the game 
 - 28/31 files complete
-- Obviously this is full app generation path, not the 'updating templates path' that Loveable use
-- Full production application generation with valdiation takes more time than 'using a template app'
-- Adding windows and macos runners
 
 ![CI – Lint & Tests](https://github.com/DocDBrown/BattleshipShellCLIGame/actions/workflows/ci.yml/badge.svg?branch=main&event=push)
 
@@ -13,10 +9,10 @@
 
 ## Building in progress....
 
-- When Automated Application Generation and Validation is Complete (fixing minor bugs) Run the game
+- To Run the game on Linux, MacOS or Windows use:
 
 ```json
-bash battleship.sh
+"./battleship.sh"
 ```
 
 This implements the game Battleship in shell script as a CLI game:
