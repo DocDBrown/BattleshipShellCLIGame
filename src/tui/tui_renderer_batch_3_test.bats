@@ -9,10 +9,10 @@ setup() {
 	. "${BATS_TEST_DIRNAME}/accessibility_modes.sh"
 	# Ensure deterministic probe state
 	unset BS_MONOCHROME BS_HIGH_CONTRAST BS_NO_COLOR NO_COLOR BS_ACCESS_MODE BS_ACCESS_MODE_LOCK BS_TERM_PROBED BS_TERM_HAS_COLOR BS_TERM_RESET_SEQ || true
-    
-    # Mock terminal capabilities to ensure tests run consistently in CI (TERM=dumb)
-    export BS_TERM_PROBED=1
-    export BS_TERM_HAS_COLOR=1
+
+	# Mock terminal capabilities to ensure tests run consistently in CI (TERM=dumb)
+	export BS_TERM_PROBED=1
+	export BS_TERM_HAS_COLOR=1
 }
 
 teardown() {
@@ -85,13 +85,13 @@ fail() {
 	export BS_MONOCHROME=1
 	out="$(tui_render_dual_grid 3 3 p_state_fn_batch_3_test p_owner_fn_batch_3_test a_state_fn_batch_3_test a_owner_fn_batch_3_test "Last: Hit on B2; Destroyer damaged")"
 	echo "${out}"
-	
+
 	# Player ship should render as 'S' in monochrome mode (per accessibility_modes.sh definition)
 	echo "${out}" | grep -q 'S' || fail "expected player ship symbol 'S' in output when monochrome"
-	
+
 	# Hit should render as 'X'
 	echo "${out}" | grep -q 'X' || fail "expected hit symbol 'X' in output when monochrome"
-	
+
 	# AI ship hidden: ensure there is no 'S' in the right-side grid (simple approximation)
 	# Count total 'S' occurrences.
 	# 1 in Legend (S Ship (#))
