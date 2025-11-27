@@ -15,39 +15,32 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # 1. Fix Windows Line Endings (CRLF -> LF)
-      # Must be done BEFORE checkout so files are written correctly on disk.
-      - name: Configure Git for LF line endings (Windows)
-        if: runner.os == 'Windows'
-        run: git config --global core.autocrlf input
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Install Dependencies
+      # --- Linux Installation ---
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck bats
 
+      # --- macOS Installation ---
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          # Install bash (to get version 5+), shellcheck, bats, and coreutils (for timeout)
-          brew install bash shellcheck bats-core coreutils
+          brew install shellcheck bats-core coreutils
           # Link gtimeout to timeout so the script works
           sudo ln -s "$(brew --prefix coreutils)/libexec/gnubin/timeout" /usr/local/bin/timeout
-          # Ensure the new bash is found first in PATH so scripts use Bash 5 instead of 3.2
-          echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
+      # --- Windows Installation ---
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
           choco install shellcheck
           npm install -g bats
 
-      # 3. Run Lint
+      # Lint all .sh and .bats files
       - name: Run shell lint
         shell: bash
         run: |
@@ -81,7 +74,7 @@ jobs:
 
           if ((${#bats_files[@]} > 0)); then
             echo "==> shellcheck on ${#bats_files[@]} .bats files"
-            # -e SC2329 ignores "function defined but not used" errors common in BATS files
+            # Added -e SC2329 to ignore "function never invoked" errors common in BATS
             shellcheck --shell=bats -e SC2329 "${bats_files[@]}"
           fi
 
@@ -89,7 +82,7 @@ jobs:
             echo "No .sh or .bats files found under: $ROOT (excluding .uitg-cache and test)"
           fi
 
-      # 4. Run Tests
+      # Run all .bats tests
       - name: Run bats tests
         shell: bash
         run: |
@@ -101,6 +94,7 @@ jobs:
           # excluding ./test and ./.uitg-cache
           while IFS= read -r -d '' f; do
             echo "Running $f"
+            # Note: On Windows, this relies on Git Bash providing a GNU-compatible 'timeout'
             if ! timeout 60s bats "$f"; then
               status=$?
               echo "File $f failed (exit $status)"
