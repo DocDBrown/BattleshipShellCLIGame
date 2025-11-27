@@ -26,19 +26,19 @@ jobs:
           sudo apt-get install -y shellcheck bats
 
       # --- macOS Installation ---
-      # Note: We install coreutils to get the 'timeout' command used in your script
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install shellcheck bats-core coreutils
-          # Link gtimeout to timeout for compatibility with your script
+          # Link gtimeout to timeout so the script works
           sudo ln -s "$(brew --prefix coreutils)/libexec/gnubin/timeout" /usr/local/bin/timeout
 
       # --- Windows Installation ---
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install shellcheck bats
+          choco install shellcheck
+          npm install -g bats
 
       # Lint all .sh and .bats files
       - name: Run shell lint
@@ -74,7 +74,8 @@ jobs:
 
           if ((${#bats_files[@]} > 0)); then
             echo "==> shellcheck on ${#bats_files[@]} .bats files"
-            shellcheck --shell=bats "${bats_files[@]}"
+            # Added -e SC2329 to ignore "function never invoked" errors common in BATS
+            shellcheck --shell=bats -e SC2329 "${bats_files[@]}"
           fi
 
           if ((${#sh_files[@]} == 0 && ${#bats_files[@]} == 0)); then
@@ -93,9 +94,7 @@ jobs:
           # excluding ./test and ./.uitg-cache
           while IFS= read -r -d '' f; do
             echo "Running $f"
-            # Note: 'timeout' is a GNU command. 
-            # On macOS, we installed coreutils to provide it.
-            # On Windows (Git Bash), it is usually available.
+            # Note: On Windows, this relies on Git Bash providing a GNU-compatible 'timeout'
             if ! timeout 60s bats "$f"; then
               status=$?
               echo "File $f failed (exit $status)"
