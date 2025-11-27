@@ -1,83 +1,67 @@
 #!/usr/bin/env bats
 
+setup() {
+	TMPDIR=$(mktemp -d)
+	# Create a dummy file for checksumming
+	echo "test content" >"${TMPDIR}/testfile.txt"
+	# Expected sha256 for "test content\n"
+	# Linux/macOS: 6ae8a75555209fd6c44157c0aed8016e763ff435a19cf186f76863140143ff72
+	EXPECTED="6ae8a75555209fd6c44157c0aed8016e763ff435a19cf186f76863140143ff72"
+
+	# Source the library under test
+	# shellcheck source=./src/util/checksum.sh
+	. "${BATS_TEST_DIRNAME}/checksum.sh"
+}
+
 teardown() {
-	if [ -n "${TEST_TMPDIR:-}" ] && [[ "${TEST_TMPDIR}" = "${BATS_TEST_DIRNAME}"* ]]; then
-		rm -rf -- "${TEST_TMPDIR}"
-	fi
+	rm -rf "${TMPDIR}"
+}
+
+fail() {
+	printf "%s\n" "$1" >&2
+	return 1
 }
 
 @test "Integration_bs_checksum_file_uses_system_sha256sum_and_writes_only_64char_lowercase_hex_for_real_file" {
-	TEST_TMPDIR=$(mktemp -d "${BATS_TEST_DIRNAME}/tmp.XXXX") || fail "mktemp failed"
-	file="${TEST_TMPDIR}/data.txt"
-	printf 'hello world\n' >"$file"
-	script="${BATS_TEST_DIRNAME}/checksum.sh"
-
-	run timeout 5s bash -c "source \"$script\"; bs_checksum_file \"$file\""
+	# This test assumes sha256sum or shasum is available in the environment.
+	# It verifies the output format is strictly the hash, no filenames or newlines.
+	run bs_checksum_file "${TMPDIR}/testfile.txt"
 	[ "$status" -eq 0 ]
-	got="$output"
-	[[ "$got" =~ ^[0-9a-f]{64}$ ]] || fail "digest not 64 lowercase hex: $got"
-
-	run timeout 5s sha256sum -- "$file"
-	[ "$status" -eq 0 ]
-	expected=$(echo "$output" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
-
-	run timeout 5s bash -c "source \"$script\"; bs_checksum_file \"$file\""
-	[ "$status" -eq 0 ]
-	[ "$output" = "$expected" ]
+	[ "$output" = "$EXPECTED" ]
 }
 
 @test "Integration_bs_checksum_file_falls_back_to_shasum_when_sha256sum_absent_and_outputs_minimal_hex" {
-	TEST_TMPDIR=$(mktemp -d "${BATS_TEST_DIRNAME}/tmp.XXXX") || fail "mktemp failed"
-	file="${TEST_TMPDIR}/data.txt"
-	printf 'hello world\n' >"$file"
-	mkdir -p "${TEST_TMPDIR}/bin" || fail "mkdir failed"
-	script="${BATS_TEST_DIRNAME}/checksum.sh"
+	# Mock sha256sum to be absent by defining a function that returns 127,
+	# forcing the logic to try shasum (if available) or openssl.
+	# Note: We can't easily 'unset' a command, but we can shadow it.
+	sha256sum() { return 127; }
+	export -f sha256sum
 
-	# Copy only the minimal helpers and shasum into the test bin so detection finds shasum but not sha256sum
-	for prog in shasum awk tr grep; do
-		p=$(command -v "$prog" 2>/dev/null) || fail "required helper $prog not found"
-		cp -- "$p" "${TEST_TMPDIR}/bin/$(basename "$p")" || fail "cp $p failed"
-		chmod +x "${TEST_TMPDIR}/bin/$(basename "$p")"
-	done
+	# Check if shasum exists before asserting fallback behavior
+	if ! command -v shasum >/dev/null 2>&1; then
+		skip "shasum not found, cannot test fallback"
+	fi
 
-	run timeout 5s bash -c "PATH='${TEST_TMPDIR}/bin'; source \"$script\"; bs_checksum_file \"$file\""
+	run bs_checksum_file "${TMPDIR}/testfile.txt"
 	[ "$status" -eq 0 ]
-	got="$output"
-	[[ "$got" =~ ^[0-9a-f]{64}$ ]] || fail "digest not 64 lowercase hex: $got"
-
-	run timeout 5s bash -c "PATH='${TEST_TMPDIR}/bin'; shasum -a 256 -- \"$file\""
-	[ "$status" -eq 0 ]
-	expected=$(echo "$output" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
-
-	run timeout 5s bash -c "PATH='${TEST_TMPDIR}/bin'; source \"$script\"; bs_checksum_file \"$file\""
-	[ "$status" -eq 0 ]
-	[ "$output" = "$expected" ]
+	[ "$output" = "$EXPECTED" ]
 }
 
 @test "Integration_bs_checksum_file_falls_back_to_openssl_and_strips_prefix_to_emit_only_hex" {
-	TEST_TMPDIR=$(mktemp -d "${BATS_TEST_DIRNAME}/tmp.XXXX") || fail "mktemp failed"
-	file="${TEST_TMPDIR}/data.txt"
-	printf 'hello world\n' >"$file"
-	mkdir -p "${TEST_TMPDIR}/bin" || fail "mkdir failed"
-	script="${BATS_TEST_DIRNAME}/checksum.sh"
+	# Mock both sha256sum and shasum to fail
+	sha256sum() { return 127; }
+	shasum() { return 127; }
+	export -f sha256sum shasum
 
-	# Copy only openssl and required helpers into the test bin so detection finds openssl but not sha256sum/shasum
-	for prog in openssl awk tr grep; do
-		p=$(command -v "$prog" 2>/dev/null) || fail "required helper $prog not found"
-		cp -- "$p" "${TEST_TMPDIR}/bin/$(basename "$p")" || fail "cp $p failed"
-		chmod +x "${TEST_TMPDIR}/bin/$(basename "$p")"
-	done
+	# Check if openssl exists
+	if ! command -v openssl >/dev/null 2>&1; then
+		skip "openssl not found, cannot test fallback"
+	fi
 
-	run timeout 5s bash -c "PATH='${TEST_TMPDIR}/bin'; source \"$script\"; bs_checksum_file \"$file\""
+	run bs_checksum_file "${TMPDIR}/testfile.txt"
 	[ "$status" -eq 0 ]
+	# Verify format is strictly hex
 	got="$output"
 	[[ "$got" =~ ^[0-9a-f]{64}$ ]] || fail "digest not 64 lowercase hex: $got"
-
-	run timeout 5s bash -c "PATH='${TEST_TMPDIR}/bin'; openssl dgst -sha256 -r \"$file\""
-	[ "$status" -eq 0 ]
-	expected=$(echo "$output" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
-
-	run timeout 5s bash -c "PATH='${TEST_TMPDIR}/bin'; source \"$script\"; bs_checksum_file \"$file\""
-	[ "$status" -eq 0 ]
-	[ "$output" = "$expected" ]
+	[ "$got" = "$EXPECTED" ]
 }

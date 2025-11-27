@@ -5,6 +5,7 @@
 - 27/31 files complete
 - Obviously this is full app generation path, not the 'updating templates path' that Loveable use
 - Full production application generation with valdiation takes more time than 'using a template app'
+- Adding windows and macos runers
 
 ![CI – Lint & Tests](https://github.com/DocDBrown/BattleshipShellCLIGame/actions/workflows/ci.yml/badge.svg?branch=main&event=push)
 

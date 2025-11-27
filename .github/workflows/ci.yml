@@ -16,7 +16,6 @@ jobs:
 
     steps:
       # 1. Fix Windows Line Endings (CRLF -> LF)
-      # Must be done BEFORE checkout so files are written correctly on disk.
       - name: Configure Git for LF line endings (Windows)
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf input
@@ -34,11 +33,11 @@ jobs:
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          # Install bash (to get version 5+), shellcheck, bats, and coreutils (for timeout)
+          # Install bash (v5+), shellcheck, bats-core, coreutils
           brew install bash shellcheck bats-core coreutils
-          # Link gtimeout to timeout so the script works
+          # Link gtimeout to timeout
           sudo ln -s "$(brew --prefix coreutils)/libexec/gnubin/timeout" /usr/local/bin/timeout
-          # Ensure the new bash is found first in PATH so scripts use Bash 5 instead of 3.2
+          # Add brew bin to PATH
           echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
       - name: Install dependencies (Windows)
@@ -81,7 +80,7 @@ jobs:
 
           if ((${#bats_files[@]} > 0)); then
             echo "==> shellcheck on ${#bats_files[@]} .bats files"
-            # -e SC2329 ignores "function defined but not used" errors common in BATS files
+            # -e SC2329 ignores "function defined but not used" errors common in BATS
             shellcheck --shell=bats -e SC2329 "${bats_files[@]}"
           fi
 
@@ -95,10 +94,15 @@ jobs:
         run: |
           set -euo pipefail
 
+          # On macOS, force BATS to use the Homebrew Bash (v5+) instead of system Bash (v3.2)
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+             export BATS_BASH="$(brew --prefix)/bin/bash"
+             echo "macOS detected: forcing BATS_BASH=$BATS_BASH"
+          fi
+
           RC=0
 
-          # Find all .bats files recursively from the current directory,
-          # excluding ./test and ./.uitg-cache
+          # Find all .bats files recursively
           while IFS= read -r -d '' f; do
             echo "Running $f"
             if ! timeout 60s bats "$f"; then
