@@ -12,7 +12,7 @@
 - To Run the game on Linux, MacOS or Windows use:
 
 ```json
-"./battleship.sh"
+./battleship.sh
 ```
 
 This implements the game Battleship in shell script as a CLI game:
