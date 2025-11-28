@@ -1,7 +1,7 @@
 # Battleship in Shell-Script CLI Game for 2 players over internet
 
 - When Automated Application Generation and Validation is Complete Run the game 
-- 28/31 files complete
+- 29/30 files complete
 
 ![CI – Lint & Tests](https://github.com/DocDBrown/BattleshipShellCLIGame/actions/workflows/ci.yml/badge.svg?branch=main&event=push)
 
