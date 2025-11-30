@@ -2,14 +2,14 @@
 
 setup() {
 	MOCK_DIR=$(mktemp -d)
-	
+
 	mkdir -p "${MOCK_DIR}/src/model"
 	mkdir -p "${MOCK_DIR}/src/util"
 	mkdir -p "${MOCK_DIR}/src/tui"
 	mkdir -p "${MOCK_DIR}/src/placement"
 
 	# Mock ship_rules.sh
-	cat <<'EOF' > "${MOCK_DIR}/src/model/ship_rules.sh"
+	cat <<'EOF' >"${MOCK_DIR}/src/model/ship_rules.sh"
 bs_ship_list() { printf "Carrier\nBattleship\nCruiser\nSubmarine\nDestroyer\n"; }
 bs_ship_name() { echo "$1"; }
 bs_ship_length() {
@@ -25,7 +25,7 @@ bs_ship_length() {
 EOF
 
 	# Mock validation.sh
-	cat <<'EOF' > "${MOCK_DIR}/src/util/validation.sh"
+	cat <<'EOF' >"${MOCK_DIR}/src/util/validation.sh"
 validate_board_size() { return 0; }
 validate_coordinate() {
 	local coord="$1"
@@ -37,7 +37,7 @@ upper() { echo "$1" | tr '[:lower:]' '[:upper:]'; }
 EOF
 
 	# Mock board_state.sh
-	cat <<'EOF' > "${MOCK_DIR}/src/model/board_state.sh"
+	cat <<'EOF' >"${MOCK_DIR}/src/model/board_state.sh"
 BS_BOARD_SIZE=8
 BS_BOARD_TOTAL_SEGMENTS=0
 _BS_PL_DR=0
@@ -55,7 +55,7 @@ _bs_placement__normalize_orientation() {
 EOF
 
 	# Mock placement_validator.sh
-	cat <<'EOF' > "${MOCK_DIR}/src/placement/placement_validator.sh"
+	cat <<'EOF' >"${MOCK_DIR}/src/placement/placement_validator.sh"
 bs_placement_validate() {
 	local r=$1 c=$2 o=$3 s=$4
 	# Simulate out of bounds for H1 (row 7, col 0)
@@ -73,7 +73,7 @@ bs_placement_validate() {
 EOF
 
 	# Mock tui_prompts.sh
-	cat <<'EOF' > "${MOCK_DIR}/src/tui/tui_prompts.sh"
+	cat <<'EOF' >"${MOCK_DIR}/src/tui/tui_prompts.sh"
 safe_read_line() {
 	local prompt="$1"
 	read -r line || return 1
@@ -83,13 +83,13 @@ prompt_board_size() { echo "8"; }
 EOF
 
 	# Mock tui_renderer.sh
-	cat <<'EOF' > "${MOCK_DIR}/src/tui/tui_renderer.sh"
+	cat <<'EOF' >"${MOCK_DIR}/src/tui/tui_renderer.sh"
 tui_render_dual_grid() { echo "# Grid Rendered - $7"; }
 EOF
 
 	cp "${BATS_TEST_DIRNAME}/manual_placement.sh" "${MOCK_DIR}/src/placement/manual_placement.sh"
 	chmod +x "${MOCK_DIR}/src/placement/manual_placement.sh"
-	
+
 	TEST_SCRIPT="${MOCK_DIR}/src/placement/manual_placement.sh"
 }
 
@@ -138,7 +138,7 @@ EOF
 @test "manual_placement_updates_board_state_idempotently_when_same_ship_segment_is_placed_twice" {
 	# Override ship list to ensure the second ship is also a Carrier (length 5)
 	# so that the total segments check matches the expectation of 5.
-	cat <<'EOF' >> "${MOCK_DIR}/src/model/ship_rules.sh"
+	cat <<'EOF' >>"${MOCK_DIR}/src/model/ship_rules.sh"
 bs_ship_list() { printf "Carrier\nCarrier\n"; }
 EOF
 

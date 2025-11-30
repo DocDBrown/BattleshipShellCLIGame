@@ -171,7 +171,7 @@ bs_auto_place_fleet() {
 				fi
 				# read dr dc
 				# Use here-string with command substitution to ensure function visibility and newline
-				IFS=' ' read -r dr dc <<< "$(_bs_auto__orient_to_delta "${orient}")"
+				IFS=' ' read -r dr dc <<<"$(_bs_auto__orient_to_delta "${orient}")"
 
 				local failed_segment=0
 				for ((i = 0; i < length; i++)); do

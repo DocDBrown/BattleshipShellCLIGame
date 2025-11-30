@@ -167,15 +167,15 @@ teardown() {
 @test "unit_auto_place_uses_canonical_ship_lengths_from_ship_rules_for_each_proposed_placement" {
 	bs_board_new 10
 	# Initialize call counter file
-	echo "0" > "${TMPDIR_TEST_DIR}/ship_length_calls"
+	echo "0" >"${TMPDIR_TEST_DIR}/ship_length_calls"
 	bs_rng_init_from_seed 99
 	bs_auto_place_fleet >/dev/null 2>&1 || fail "auto_place failed"
-	
+
 	# Read count from file
 	final_count=$(<"${TMPDIR_TEST_DIR}/ship_length_calls")
 	num_ships=$(bs_ship_list | wc -l | tr -d '[:space:]')
-	
-	if [ "${final_count}" -lt "${num_ships}" ]; then 
+
+	if [ "${final_count}" -lt "${num_ships}" ]; then
 		fail "bs_ship_length called only ${final_count} times, expected at least ${num_ships}"
 	fi
 }

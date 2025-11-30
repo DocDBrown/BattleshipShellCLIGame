@@ -4,6 +4,12 @@
 # length lookup, name lookup, simple validation and helper calculations.
 # No logging or external I/O performed.
 
+# Idempotent load guard: make it safe to source this file multiple times
+if [[ ${BS_SHIP_RULES_LOADED:-0} -eq 1 ]]; then
+	return 0
+fi
+BS_SHIP_RULES_LOADED=1
+
 set -o nounset
 set -o pipefail
 

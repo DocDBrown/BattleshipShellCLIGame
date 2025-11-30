@@ -49,34 +49,34 @@ manual__parse_coord() {
 
 	local row
 	case "${letter}" in
-		A) row=0 ;;
-		B) row=1 ;;
-		C) row=2 ;;
-		D) row=3 ;;
-		E) row=4 ;;
-		F) row=5 ;;
-		G) row=6 ;;
-		H) row=7 ;;
-		I) row=8 ;;
-		J) row=9 ;;
-		K) row=10 ;;
-		L) row=11 ;;
-		M) row=12 ;;
-		N) row=13 ;;
-		O) row=14 ;;
-		P) row=15 ;;
-		Q) row=16 ;;
-		R) row=17 ;;
-		S) row=18 ;;
-		T) row=19 ;;
-		U) row=20 ;;
-		V) row=21 ;;
-		W) row=22 ;;
-		X) row=23 ;;
-		Y) row=24 ;;
-		Z) row=25 ;;
-		*) return 1 ;;
-	 esac
+	A) row=0 ;;
+	B) row=1 ;;
+	C) row=2 ;;
+	D) row=3 ;;
+	E) row=4 ;;
+	F) row=5 ;;
+	G) row=6 ;;
+	H) row=7 ;;
+	I) row=8 ;;
+	J) row=9 ;;
+	K) row=10 ;;
+	L) row=11 ;;
+	M) row=12 ;;
+	N) row=13 ;;
+	O) row=14 ;;
+	P) row=15 ;;
+	Q) row=16 ;;
+	R) row=17 ;;
+	S) row=18 ;;
+	T) row=19 ;;
+	U) row=20 ;;
+	V) row=21 ;;
+	W) row=22 ;;
+	X) row=23 ;;
+	Y) row=24 ;;
+	Z) row=25 ;;
+	*) return 1 ;;
+	esac
 
 	local col=$((number - 1))
 	printf "%d %d" "${row}" "${col}"
@@ -132,7 +132,7 @@ main() {
 	local board_size_arg=""
 	while [ "$#" -gt 0 ]; do
 		case "$1" in
-		-h|--help)
+		-h | --help)
 			usage
 			return 0
 			;;
@@ -218,7 +218,7 @@ main() {
 			if [ "${raw_coord}" = "R" ] || [ "${raw_coord}" = "REPLACE" ]; then
 				# Undo last placement
 				local keys=("${!PLACED[@]}")
-				if (( ${#keys[@]} == 0 )); then
+				if ((${#keys[@]} == 0)); then
 					printf "No previous placement to undo\n" >&2
 					continue
 				fi
@@ -272,7 +272,7 @@ main() {
 			if [ "${raw_orient}" = "R" ]; then
 				# Orientation-level undo of last ship
 				local keys2=("${!PLACED[@]}")
-				if (( ${#keys2[@]} == 0 )); then
+				if ((${#keys2[@]} == 0)); then
 					printf "No previous placement to undo\n" >&2
 					continue
 				fi
@@ -291,12 +291,12 @@ main() {
 
 			local orient
 			case "${raw_orient}" in
-				H|HOR*) orient=h ;;
-				V|VER*) orient=v ;;
-				*)
-					printf "Invalid orientation: %s\n" "${raw_orient}" >&2
-					continue
-					;;
+			H | HOR*) orient=h ;;
+			V | VER*) orient=v ;;
+			*)
+				printf "Invalid orientation: %s\n" "${raw_orient}" >&2
+				continue
+				;;
 			esac
 
 			if ! bs_placement_validate "${row}" "${col}" "${orient}" "${ship}"; then
