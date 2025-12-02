@@ -135,7 +135,7 @@ SH
 	XDG_CONFIG_HOME="${TMPTESTDIR}/xdg_config"
 	XDG_CACHE_HOME="${TMPTESTDIR}/xdg_cache"
 
-	run timeout 5s bash -c "XDG_CONFIG_HOME='${XDG_CONFIG_HOME}' XDG_CACHE_HOME='${XDG_CACHE_HOME}' source '${TMPTESTDIR}/paths.sh' && bs_path_config_dir_from_cli && bs_path_cache_dir_from_cli"
+	run timeout 5s bash -c "export XDG_CONFIG_HOME='${XDG_CONFIG_HOME}'; export XDG_CACHE_HOME='${XDG_CACHE_HOME}'; source '${TMPTESTDIR}/paths.sh' && bs_path_config_dir_from_cli && bs_path_cache_dir_from_cli"
 	[ "$status" -eq 0 ]
 	[[ "$output" = *"${XDG_CONFIG_HOME}/battleship"* ]]
 	[[ "$output" = *"${XDG_CACHE_HOME}/battleship"* ]]
