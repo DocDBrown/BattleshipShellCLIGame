@@ -1,7 +1,7 @@
 # Battleship in Shell-Script CLI Game
 
-- Automated Application Generation is Complete
-- Commencing user acceptance testing
+- Automated Application Generation still in progress pending end-to-end tests
+- Taking a break from this to work on more important projects
 
 ![CI – Lint & Tests](https://github.com/DocDBrown/BattleshipShellCLIGame/actions/workflows/ci.yml/badge.svg?branch=main&event=push)
 
