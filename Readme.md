@@ -2,6 +2,7 @@
 
 - Automated Application Generation still in progress pending end-to-end tests
 - Taking a break from this to work on more important projects
+- THIS GAME WILL NOT BE PLAYABLE UNITL END TO END TEST WORKFLOW HAS RUN
 
 ![CI – Lint & Tests](https://github.com/DocDBrown/BattleshipShellCLIGame/actions/workflows/ci.yml/badge.svg?branch=main&event=push)
 
